@@ -27,7 +27,7 @@ with open('uniquelookup.json') as json_file:
 with open('state_dict.json') as json_file:
     state_dict = json.load(json_file)
     
-question_template = 'What state has the (Value Entity) (Rate Entity)'
+question_template = 'What state has the (Value Entity) (Rate Entity)?'
 
 question_template_id = 'db2q9' 
 output = {}
@@ -42,19 +42,19 @@ def rateQuery(query, rate_entity):
     date = str(date)
     date = date.replace("-", "")
     if rate_entity == 'daily percent positive rate':
-        query = query.replace("Rate", "positiveIncrease * 100.0 /totalTestResultsIncrease")
+        query = query.replace("Rate Entity Column", "positiveIncrease * 100.0 /totalTestResultsIncrease")
         query = query.replace("(Null)", "positiveIncrease is not null and totalTestResultsIncrease is not null")
     elif rate_entity == 'daily percent negative rate':
-        query = query.replace("Rate", "negativeIncrease *100.0/totalTestResultsIncrease")
+        query = query.replace("Rate Entity Column", "negativeIncrease *100.0/totalTestResultsIncrease")
         query = query.replace("(Null)", "negativeIncrease is not null and totalTestResultsIncrease is not null")
     elif rate_entity == 'percent positive rate':
-        query = query.replace("Rate", "positive *100.0/totalTestResults")
+        query = query.replace("Rate Entity Column", "positive *100.0/totalTestResults")
         query = query.replace("(Null)", "positive is not null and totalTestResults is not null")
     elif rate_entity == 'percent negative rate':
-        query = query.replace("Rate", "negative * 100.0/totalTestResults")
+        query = query.replace("Rate Entity Column", "negative * 100.0/totalTestResults")
         query = query.replace("(Null)", "negative is not null and totalTestResults is not null")
     else:
-        query = query.replace("Rate", "hospitalizedCumulative * 100.0/positive")
+        query = query.replace("Rate Entity Column", "hospitalizedCumulative * 100.0/positive")
         query = query.replace("(Null)", "hospitalizedCumulative is not null and positive is not null")
     query = query.replace("current date", date)
     return query
@@ -78,14 +78,12 @@ while count <110:
     else:
         ascending = True
     rate_entity = random.choice(rate_entity_list)
-    sql_template = "Select state from db2state where date = 'current date' and (Null) order by Rate asc/desc limit X,1"
+    sql_template = "Select state from db2state where date = 'current date' and (Null) order by Rate Entity Column Value Entity"
     query = sql_template
     if ascending == False:
-        query = query.replace('asc/desc','desc')
-        query = query.replace('X', str(order-1))
+        query = query.replace('Value Entity','desc limit ' + str(order-1) + ', 1')
     else:
-        query = query.replace('asc/desc','asc')
-        query = query.replace('X', str(order-1))
+        query = query.replace('Value Entity','asc limit ' + str(order-1) + ', 1')
     query = rateQuery(query, rate_entity)
     real_question =  question_template.replace("(Rate Entity)", rate_entity)
     real_question = real_question.replace("(Value Entity)", val)
@@ -103,8 +101,13 @@ while count <110:
                      'entities' : entities, 'question' : real_question, 
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 2'})
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
     
         count = count +1
+with open('db2q9data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print("done")

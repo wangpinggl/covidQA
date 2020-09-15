@@ -56,6 +56,9 @@ for i in case_entity:
         print(query)
         print(result)
         count = count + 1
+    
+with open('db4q1data.json', 'w') as outfile: 
+    json.dump(output,outfile)
 
         
-        
+print('done')

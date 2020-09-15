@@ -27,10 +27,10 @@ with open('state_dict.json') as json_file:
     state_dict = json.load(json_file)
 conn = sqlite3.connect('testQ.db')
 c = conn.cursor()     
-question_template = "What percentage of (Case Entity) in (Location Entity) are from (Race Entity)?"
+question_template = "What percentage of (Case Entity) in (State Entity) are from (Race Entity)?"
 question_template_id = 'db2q6'
 output = {}
-entities = ['Case Entity', 'Location Entity', 'Race Entity']
+entities = ['Case Entity', 'State Entity', 'Race Entity']
 case_entity_list = ['confirmed cases', 'cases', 'deaths']
 location_entity_list = ['(State)', "(State Abbreviation)", 'the state of (State)']
 count = 1
@@ -91,13 +91,13 @@ def raceQuery(query, race_entity):
             output = output.replace("(race)", 'American Indians or Alaska Natives')
         else:
             output = output.replace("(race)", specific_race + 's')
-    query = query.replace("(Race)",race_input)
+    query = query.replace("Race Entity Column",race_input)
     return query, output
 while count < 300:
     output[count] = []
     populated_entities = []
     location = random.choice(location_entity_list)
-    sql_template = "Select (Case)_(Race) from db2race where date = 'given date' and state = \"State Name\" " 
+    sql_template = "Select Case Entity Column_Race Entity Column from db2race where date = 'given date' and state = \"State Entity\" " 
     race_entity = random.choice(data['Race'])
     case_entity = random.choice(case_entity_list)
     while race_entity == 'mixed' or race_entity =='multiracial':
@@ -110,18 +110,18 @@ while count < 300:
         key_list = list(state_dict.keys())
         val_list = list(state_dict.values())
         state_abbreviation = key_list[val_list.index(state_name)]
-        query = sql_template.replace("State Name", state_abbreviation)
+        query = sql_template.replace("State Entity", state_abbreviation)
         query, race_e = raceQuery(query, race_entity)
         loc = location.replace("(State)", state_name)
     else:
         state_abbreviation = random.choice(data2['State Abbreviation'])
-        query = sql_template.replace("State Name", state_abbreviation)
+        query = sql_template.replace("State Entity", state_abbreviation)
         query, race_e = raceQuery(query,race_entity)
         loc = location.replace("(State Abbreviation)", state_abbreviation)
     if case_entity.find("cases") >=0: 
-        query = query.replace("(Case)", 'Cases')
+        query = query.replace("Case Entity Column", 'Cases')
     else:
-        query = query.replace("(Case)", "Deaths")
+        query = query.replace("Case Entity Column", "Deaths")
     today = datetime.date.today()-datetime.timedelta(days=2)
     if today.weekday() == 1 or today.weekday() == 0:
         date = today-datetime.timedelta(days=today.weekday()+1)
@@ -130,7 +130,7 @@ while count < 300:
     else:
         date = today - datetime.timedelta(days=today.weekday()-2)
     query = query.replace('given date', str(date).replace("-", ""))
-    real_question = question_template.replace("(Location Entity)", loc)
+    real_question = question_template.replace("(State Entity)", loc)
     real_question = real_question.replace("(Case Entity)", case_entity)
     real_question = real_question.replace("(Race Entity)", race_e)
     populated_entities.append(case_entity)
@@ -148,8 +148,13 @@ while count < 300:
                      'entities' : entities, 'question' : real_question, 
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 2'})
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
     
         count = count +1
+with open('db2q6data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print("done")

@@ -27,49 +27,51 @@ with open('state_dict.json') as json_file:
     
 conn = sqlite3.connect('testQ.db')
 c = conn.cursor()
-question_template = 'What is the (Rate Entity) in (Location Entity)?'
+question_template = 'What is the (Rate Entity) in (State Entity)?'
 question_template_id = 'db2q1'
 output = {}
 question_key = {}
 location_entity_list = ['(State)', '(State Abbreviation)', 'the state of (State)']
 rate_entity_list = ['daily percent positive rate', 'daily percent negative rate', 'percent positive rate', 'percent negative rate', 'hospitilization rate']
 count = 1
-entities = ['Rate Entity', 'Location Entity']
+entities = ['Rate Entity', 'State Entity']
 
 def rateQuery(query, rate_entity):
     date = datetime.date.today()-datetime.timedelta(days=1)
     date = str(date)
     date = date.replace("-", "")
     if rate_entity == 'daily percent positive rate':
-        query = query.replace("Rate", "positiveIncrease * 100.0 /totalTestResultsIncrease")
+        query = query.replace("Rate Entity Column", "positiveIncrease * 100.0 /totalTestResultsIncrease")
     elif rate_entity == 'daily percent negative rate': 
-        query = query.replace("Rate", "negativeIncrease * 100.0/totalTestResultsIncrease")
+        query = query.replace("Rate Entity Column", "negativeIncrease * 100.0/totalTestResultsIncrease")
     elif rate_entity == 'percent positive rate':
-        query = query.replace("Rate", "positive * 100.0/totalTestResults")
+        query = query.replace("Rate Entity Column", "positive * 100.0/totalTestResults")
     elif rate_entity == 'percent negative rate':
-        query = query.replace("Rate", "negative * 100.0/totalTestResults")
+        query = query.replace("Rate Entity Column", "negative * 100.0/totalTestResults")
     else:
-        query = query.replace("Rate", "hospitalizedCumulative * 100.0/positive")
+        query = query.replace("Rate Entity Column", "hospitalizedCumulative * 100.0/positive")
     query = query.replace('current date', date)
     return query
-while count <300:
+while count <275:
     output[count] = []
     populated_entities = []
     
     rand_num = random.random()
     rate_entity = random.choice(rate_entity_list)
-    if rand_num <0.025:
+    if rand_num <0.50:
+        question_template = 'What is the (Rate Entity) in the United States?'
         location = 'United States' 
-        sql_template = "Select Rate from db2US where date = 'current date'" 
+        sql_template = "Select Rate Entity Column from db2US where date = 'current date'" 
         query = sql_template
         query = rateQuery(query, rate_entity)
-        real_question = question_template.replace("(Location Entity)", location)
-        real_question = real_question.replace("(Rate Entity)", rate_entity)
+        real_question = question_template.replace("(Rate Entity)", rate_entity)
         populated_entities.append(rate_entity)
-        populated_entities.append(location)
+        entities = ['Rate Entity']
     else: 
         location = random.choice(location_entity_list)
-        sql_template = "Select Rate from db2State where date = 'current date' and state = \"State Name\" "
+        entities = ['Rate Entity', 'State Entity']
+        question_template = 'What is the (Rate Entity) in (State Entity)?'
+        sql_template = "Select Rate Entity Column from db2State where date = 'current date' and state = \"State Entity\" "
         if location.find("(State)")>=0:
             state_name = random.choice(data2['State'])
             while state_name == 'Diamond Princess':
@@ -77,17 +79,17 @@ while count <300:
             key_list = list(state_dict.keys())
             val_list = list(state_dict.values())
             state_abbreviation = key_list[val_list.index(state_name)]
-            query = sql_template.replace("State Name", state_abbreviation)
+            query = sql_template.replace("State Entity", state_abbreviation)
             query = rateQuery(query, rate_entity)
             loc = location.replace("(State)", state_name)
             real_question = question_template.replace("(Location Entity)", loc)
             real_question = real_question.replace("(Rate Entity)", rate_entity)
         else:
             state_abbreviation = random.choice(data2['State Abbreviation'])
-            query = sql_template.replace("State Name", state_abbreviation)
+            query = sql_template.replace("State Entity", state_abbreviation)
             query = rateQuery(query, rate_entity)
             loc = location.replace("(State Abbreviation)", state_abbreviation)
-            real_question = question_template.replace("(Location Entity)", loc)
+            real_question = question_template.replace("(State Entity)", loc)
             real_question = real_question.replace("(Rate Entity)", rate_entity)
         populated_entities.append(rate_entity)
         populated_entities.append(loc)
@@ -103,11 +105,14 @@ while count <300:
                  'entities' : entities, 'question' : real_question, 
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 2'})
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
         count = count+1
     
     
-
-    
+with open('db2q1data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print("done")    

@@ -82,13 +82,13 @@ state_dict = {'AK': 'Alaska',
         'WV': 'West Virginia',
         'WY': 'Wyoming'}
 
-question_template = "What percentage of Covid-19 deaths in (Location Entity) are from (Race Entity)?"
+question_template = "What percentage of Covid-19 deaths in (County Entity) (State Entity) are from (Race Entity)?"
 question_template_id = 'db5q1'
 output = {}
 
 count = 1
 question_key = {}
-entities = ['Location Entity', 'Race Entity']
+entities = ['County Entity','State Entity', 'Race Entity']
 
 def generateQuery(race): 
     specific_race = ''
@@ -121,9 +121,9 @@ def generateQuery(race):
     else:
         real_sub = race.replace("(race)", specific_race)
         real_question = question_template.replace("(Race Entity)", real_sub)
-    query = sql_template.replace("(given race)", race_input)
-    query = query.replace("given County", county_name + " County")
-    query = query.replace("State Abbreviation", state_abbreviation)
+    query = sql_template.replace("Race Entity Column", race_input)
+    query = query.replace("County Entity", county_name + " County")
+    query = query.replace("State Entity", state_abbreviation)
     return real_question, query, real_sub
 while count < 300: 
     populated_entities = []
@@ -134,7 +134,7 @@ while count < 300:
     entity = re.findall('\(([^)]+)', location)
     query = ""
     populated_entities = []
-    sql_template = "Select (given race) from db5 where Indicator = 'Distribution of COVID-19 deaths (%)' and County_Name = \"given County\" and State = \"State Abbreviation\""
+    sql_template = "Select Race Entity Column from db5 where Indicator = 'Distribution of COVID-19 deaths (%)' and County_Name = \"County Entity\" and State = \"State Entity\""
     if entity[1] == 'State': 
         county_list = county_list = random.choice(data2['County']).split(', ')
         county_name = county_list[0]
@@ -148,7 +148,7 @@ while count < 300:
         while race.find("people of mixed color") >= 0 or race.find("mixed")  >= 0 or race.find("multiracial")>=0 or race.find("people of two or more races") >=0: 
             race = random.choice(data['Race'])
         real_question, query, real_sub = generateQuery(race)
-        real_question = real_question.replace("(Location Entity)",loc)
+        real_question = real_question.replace("(County Entity) (State Entity)",loc)
         populated_entities.append(loc)
         populated_entities.append(real_sub)
     else:
@@ -164,7 +164,7 @@ while count < 300:
         while race.find("people of mixed color") >= 0 or race.find("mixed")  >= 0 or race.find("multiracial")>=0 or race.find("people of two or more races") >=0: 
             race = random.choice(data['Race'])
         real_question, query, real_sub = generateQuery(race)
-        real_question = real_question.replace("(Location Entity)",loc)
+        real_question = real_question.replace("(County Entity) (State Entity)",loc)
         populated_entities.append(loc)
         populated_entities.append(real_sub)
     c.execute(query)
@@ -180,6 +180,11 @@ while count < 300:
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 5'})
         count = count + 1
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
+with open('db5q1data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print("done")

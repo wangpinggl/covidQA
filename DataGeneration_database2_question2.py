@@ -41,27 +41,27 @@ def hospitalizationQuery(query, hospitalization):
     date = str(date)
     date = date.replace("-", "")
     if hospitalization == 'Currently in ICU':
-        query = query.replace("Hospitalization", "inICUCurrently")
+        query = query.replace("Hospitalization Entity Column", "inICUCurrently")
         query = query.replace("(Null)", "inICUCurrently is not null")
     elif hospitalization == 'Cumulatively in ICU':
-        query = query.replace("Hospitalization", "inICUCumulative")
+        query = query.replace("Hospitalization Entity Column", "inICUCumulative")
         query = query.replace("(Null)", "inICUCumulative is not null")
     elif hospitalization == 'Currently on ventilators':
-        query = query.replace("Hospitalization", "onVentilatorCurrently")
+        query = query.replace("Hospitalization Entity Column", "onVentilatorCurrently")
         query = query.replace("(Null)", "onVentilatorCurrently is not null")
     elif hospitalization == 'Cumulatively on ventilators':
-        query = query.replace("Hospitalization", "onVentilatorCumulative")
+        query = query.replace("Hospitalization Entity Column", "onVentilatorCumulative")
         query = query.replace("(Null)", "onVentilatorCumulative is not null")
     elif hospitalization == 'Cumulatively hospitalized':
-        query = query.replace("Hospitalization", "hospitalizedCumulative")
+        query = query.replace("Hospitalization Entity Column", "hospitalizedCumulative")
         query = query.replace("(Null)", "hospitalizedCumulative is not null")
     else:
-        query = query.replace("Hospitalization", "hospitalizedCurrently")
+        query = query.replace("Hospitalization Entity Column", "hospitalizedCurrently")
         query = query.replace("(Null)", "hospitalizedCurrently is not null") 
     query = query.replace("given date", date)
     return query
 
-while count <100: 
+while count <140: 
     populated_entities = []
     output[count] = []
     val = random.choice(data['Value Entity'])
@@ -81,14 +81,12 @@ while count <100:
     else:
         ascending = True
     hospitalization = random.choice(data['Hospitalization Entity'])
-    sql_template = "Select state from db2state where date = 'given date' and (Null) order by Hospitalization asc/desc limit X,1"
+    sql_template = "Select state from db2state where date = 'given date' and (Null) order by Hospitalization Entity Column Value Entity"
     query = sql_template
     if ascending == False:
-        query = query.replace('asc/desc','desc')
-        query = query.replace('X', str(order-1))
+        query = query.replace('Value Entity','desc limit ' + str(order-1) + ', 1')
     else:
-        query = query.replace('asc/desc','asc')
-        query = query.replace('X', str(order-1))
+        query = query.replace('Value Entity','asc limit ' + str(order-1) + ', 1')
     query = hospitalizationQuery(query, hospitalization)
     real_question = question_template.replace("(Hospitalization Entity)", hospitalization)
     real_question = real_question.replace("(Value Entity)", val)
@@ -106,8 +104,13 @@ while count <100:
                  'entities' : entities, 'question' : real_question, 
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 2'})
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
     
         count = count +1
+with open('db2q2data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print("done")

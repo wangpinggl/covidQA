@@ -80,12 +80,12 @@ state_dict = {'AK': 'Alaska',
         'WI': 'Wisconsin',
         'WV': 'West Virginia',
         'WY': 'Wyoming'}
-question_template = 'How many (Race Entity) deaths occured in (Location Entity)?'
+question_template = 'How many (Race Entity) deaths occured in (County Entity) (State Entity)?'
 question_template_id = 'db5q3'
 output = {}
 
 count = 1
-entities = ['Race Entity', 'Location Entity']
+entities = ['Race Entity', 'County Entity','State Entity']
 
 def generateQuery(race):
     specific_race = ''
@@ -108,9 +108,9 @@ def generateQuery(race):
   
     real_sub = race.replace("(race)", specific_race)
     real_question = question_template.replace("(Race Entity)", real_sub)
-    query = sql_template.replace("(given race)", race_input)
-    query = query.replace("Given County", county_name + " County")
-    query = query.replace("State Abbreviation", state_abbreviation)
+    query = sql_template.replace("Race Entity Column", race_input)
+    query = query.replace("County Entity", county_name + " County")
+    query = query.replace("State Entity", state_abbreviation)
     return real_question, query, real_sub
 while count < 300: 
     output[count] = []
@@ -120,7 +120,7 @@ while count < 300:
         location = random.choice(data['Location Entity'])
     entity = re.findall('\(([^)]+)', location)
     query = ""
-    sql_template = "Select Round((Select (given race) from db5 where Indicator = 'Distribution of COVID-19 deaths (%)' and State = \"State Abbreviation\" and County_Name = \"Given County\") * (Select Deaths from db5 where Indicator = 'Distribution of COVID-19 deaths (%)' and State = \"State Abbreviation\" and County_Name = \"Given County\"))"
+    sql_template = "Select Round((Select Race Entity Column from db5 where Indicator = 'Distribution of COVID-19 deaths (%)' and State = \"State Entity\" and County_Name = \"County Entity\") * (Select Deaths from db5 where Indicator = 'Distribution of COVID-19 deaths (%)' and State = \"State Entity\" and County_Name = \"County Entity\"))"
     if entity[1] == 'State':
         
         county_list = county_list = random.choice(data2['County']).split(', ')
@@ -135,7 +135,7 @@ while count < 300:
         while race.find("people of mixed color") >= 0 or race.find("mixed")  >= 0 or race.find("multiracial")>=0 or race.find("people of two or more races") >=0 or race.find("people of color") >=0 or race.find("(race) people") >=0: 
             race = random.choice(data['Race'])
         real_question, query, real_sub = generateQuery(race)
-        real_question = real_question.replace("(Location Entity)", loc)
+        real_question = real_question.replace("(County Entity) (State Entity)", loc)
         
     else:
         county_list = county_list = random.choice(data2['County']).split(', ')
@@ -150,7 +150,7 @@ while count < 300:
         while race.find("people of mixed color") >= 0 or race.find("mixed")  >= 0 or race.find("multiracial")>=0 or race.find("people of two or more races") >=0 or race.find("people of color") >=0 or race.find("(race) people") >=0: 
             race = random.choice(data['Race'])
         real_question, query, real_sub = generateQuery(race)
-        real_question = real_question.replace("(Location Entity)",loc)
+        real_question = real_question.replace("(County Entity) (State Entity)",loc)
     populated_entities.append(real_sub)
     populated_entities.append(loc)
     c.execute(query)
@@ -165,7 +165,12 @@ while count < 300:
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 5'})
         question_key[real_question] = True
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
         count = count + 1
+with open('db5q3data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print('done')

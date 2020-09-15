@@ -81,13 +81,13 @@ state_dict = {'AK': 'Alaska',
         'WV': 'West Virginia',
         'WY': 'Wyoming'}
 
-question_template = "Which county in (Location Entity) has the (Value Entity) percentage of deaths from (Race Entity)?"
+question_template = "Which county in (State Entity) has the (Value Entity) percentage of deaths from (Race Entity)?"
 question_template_id = 'db5q2'
 output = {}
 
 count = 1
 
-entities = ['Location Entity', 'Value Entity', 'Race Entity']
+entities = ['State Entity', 'Value Entity', 'Race Entity']
 location_entity = ['the state of (State)', '(State Abbreviation)', '(State)']
 
 
@@ -123,14 +123,12 @@ def generateQuery(race, ascending):
         real_sub = race.replace("(race)", specific_race)
         real_question = question_template.replace("(Race Entity)", real_sub)
     
-    query = sql_template.replace("(State Abbreviation)", state_abbreviation)
-    query = query.replace("(given race)", race_input)
-    if ascending ==False:
-        query = query.replace("asc/desc", "desc")
-        query = query.replace("X",  str(order-1))
+    query = sql_template.replace("State Entity", state_abbreviation)
+    query = query.replace("Race Entity Column", race_input)
+    if ascending == False:
+        query = query.replace('Value Entity','desc limit ' + str(order-1) + ', 1')
     else:
-        query = query.replace("asc/desc", "asc")
-        query = query.replace("X", str(order-1))
+        query = query.replace('Value Entity','asc limit ' + str(order-1) + ', 1')
     return real_question, query, real_sub
 
 while count < 300: 
@@ -161,7 +159,7 @@ while count < 300:
         ascending = True
     entity = re.findall('\(([^)]+)', location)
     query = ""
-    sql_template = "Select County_Name from db5 where Indicator = 'Distribution of COVID-19 deaths (%)' and State = '(State Abbreviation)' order by (given race) asc/desc limit X,1"
+    sql_template = "Select County_Name from db5 where Indicator = 'Distribution of COVID-19 deaths (%)' and State = 'State Entity' order by Race Entity Column Value Entity"
     if entity[0] == 'State': 
         state_name = random.choice(data2['State'])
         while state_name == 'Diamond Princess':
@@ -174,7 +172,7 @@ while count < 300:
         while race.find("people of mixed color") >= 0 or race.find("mixed")  >= 0 or race.find("multiracial")>=0 or race.find("people of two or more races") >=0: 
             race = random.choice(data['Race'])
         real_question, query, real_sub = generateQuery(race,ascending)
-        real_question = real_question.replace("(Location Entity)", state_name)
+        real_question = real_question.replace("(State Entity)", state_name)
         real_question = real_question.replace("(Value Entity)", val)
         location = location.replace("(State)", state_name)
         populated_entities.append(location)
@@ -187,7 +185,7 @@ while count < 300:
         while race.find("people of mixed color") >= 0 or race.find("mixed")  >= 0 or race.find("multi") >=0 or race.find("people of two or more races") >=0: 
             race = random.choice(data['Race'])
         real_question, query, real_sub= generateQuery(race,ascending)
-        real_question = real_question.replace("(Location Entity)", state_abbreviation)
+        real_question = real_question.replace("(State Entity)", state_abbreviation)
         real_question = real_question.replace("(Value Entity)", val)
         location = location.replace("(State Abbreviation)", state_abbreviation)
         populated_entities.append(location)
@@ -206,8 +204,14 @@ while count < 300:
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 5'})
         question_key[real_question] = True
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
         count = count  + 1
 
+with open('db5q2data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+
+print("done")

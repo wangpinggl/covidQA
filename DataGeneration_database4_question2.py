@@ -36,35 +36,33 @@ def changeQuery(demographic, ascending, amount, case):
     query = ""
     if case == 'confirmed cases' or case == 'cases':
         if demographic == 'sex' or demographic == 'gender':
-            query = sql_template.replace("Race Ethnicity/Age Group/Sex", "Sex")
+            query = sql_template.replace("Demographic Entity", "Sex")
             query = query.replace("table name", "db4casegender")
         elif demographic == 'age' or demographic == 'age group':
-            query = sql_template.replace("Race Ethnicity/Age Group/Sex", "Age_Group")
+            query = sql_template.replace("Demographic Entity", "Age_Group")
             query = query.replace("table name", "db4caseage")
         else:
-            query = sql_template.replace("Race Ethnicity/Age Group/Sex", "Race_Ethnicity")
+            query = sql_template.replace("Demographic Entity", "Race_Ethnicity")
             query = query.replace("table name", "db4caserace")
     else:
         if demographic == 'sex' or demographic == 'gender':
-            query = sql_template.replace("Race Ethnicity/Age Group/Sex", "Sex")
+            query = sql_template.replace("Demographic Entity", "Sex")
             query = query.replace("table name", "db4deathgender")
         elif demographic == 'age' or demographic == 'age group':
-            query = sql_template.replace("Race Ethnicity/Age Group/Sex", "Age_Group")
+            query = sql_template.replace("Demographic Entity", "Age_Group")
             query = query.replace("table name", "db4deathage")
         else:
-            query = sql_template.replace("Race Ethnicity/Age Group/Sex", "Race_Ethnicity")
+            query = sql_template.replace("Demographic Entity", "Race_Ethnicity")
             query = query.replace("table name", "db4deathrace")
     if amount =='percentage of': 
-        query = query.replace("Count/Percentage", "Percentage")
+        query = query.replace("Amount Entity", "Percentage")
     else:
-        query = query.replace("Count/Percentage", "Count")
+        query = query.replace("Amount Entity", "Count")
     
-    if ascending ==False:
-        query = query.replace("asc,desc", "desc")
-        query = query.replace("X",  str(order))
+    if ascending == False:
+        query = query.replace('Value Entity','desc limit ' + str(order-1) + ', 1')
     else:
-        query = query.replace("asc,desc", "asc")
-        query = query.replace("X", str(order))
+        query = query.replace('Value Entity','asc limit ' + str(order-1) + ', 1')
     
     return query
 
@@ -73,11 +71,11 @@ for case in case_entity:
         for amount in amount_entity:
             output[count] = []
             populated_entities = []
-            sql_template = "Select Race Ethnicity/Age Group/Sex, Count/Percentage from table name Order by Count/Percentage asc,desc limit X,1"
+            sql_template = "Select Demographic Entity, Amount Entity from table name Order by Amount Entity Value Entity"
             val = random.choice(data['Value Entity'])
             query = ""
             if val.find("(x)") >= 0:
-                order = random.randint(2,7)
+                order = random.randint(1,4)
                 val = val.replace("(x)", str(order))
                 if order == 2: 
                     val = val.replace("th", "nd")
@@ -104,10 +102,14 @@ for case in case_entity:
                  'entities' : entities, 'question' : real_question, 
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 4'})
             print(count)
+            print(question_template)
+            print(sql_template)
             print(real_question)
             print(query)
             print(result)
             count = count + 1
 
+with open('db4q2data.json', 'w') as outfile: 
+    json.dump(output,outfile)
 
-        
+print("done")

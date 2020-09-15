@@ -28,7 +28,7 @@ with open('state_dict.json') as json_file:
 conn = sqlite3.connect('testQ.db')
 c = conn.cursor()
 question_key = {}
-question_template = 'What is the (Rate Entity) in (Location Entity) (Time Entity)?'
+question_template = 'What is the (Rate Entity) in (Country Entity) (Time Entity)?'
 question_template_id = 'db6q2' 
 time_entity_list = ['on (month), (date)', 'today', 'yesterday', 'day before yesterday', 'as of (month), (date)','as of today', 'as of yesterday', 'as of last (day)', 'last (day)', 'as of day before yesterday']
 output = {}
@@ -78,7 +78,7 @@ def timeSingleQuery(query, time_entity):
         in_date = datetime.date(2020, month_dict[month], int(date_num))
         output = output.replace("(month)", month)
         output = output.replace("(date)", date)
-    query = query.replace('given date', in_date.strftime("%b %d, %Y"))
+    query = query.replace('Time Entity', in_date.strftime("%b %d, %Y"))
     return query, output
         
     
@@ -88,31 +88,39 @@ while count <300 :
     rate_entity = random.choice(rate_entity_list)
     time_entity = random.choice(time_entity_list)
     output[count] = []
-    if random.random()<0.2:
-        isNull = True
-    else:
-        isNull = False
+    isNull = False
     if rate_entity == 'percent positive rate':
-        sql_template = "Select pos_rate from db6file2 where date = 'given date' and Entity = \"Country Name\" "
-        query = sql_template.replace("Country Name", location)
+        sql_template = "Select Rate Entity Column from db6file2 where date = 'Time Entity' and Entity = \"Country Entity\" "
+        query = sql_template.replace("Country Entity", location)
+        query = query.replace("Rate Entity Column", "pos_rate")
+        if random.random()<0.2:
+            isNull = True
+        else:
+            isNull = False
         if isNull:
             query, time_e = timeSingleQuery(query, 'today')
             time_e = 'Null'
         else:
             query, time_e = timeSingleQuery(query, time_entity)
     elif rate_entity == 'percent negative rate':
-        sql_template = "Select 100-pos_rate from db6file2 where date = 'given date' and Entity = \"Country Name\" "
-        query = sql_template.replace("Country Name", location)
+        sql_template = "Select Rate Entity Column from db6file2 where date = 'Time Entity' and Entity = \"Country Entity\" "
+        query = sql_template.replace("Country Entity", location)
+        query = query.replace("Rate Entity Column", "100-pos_rate")
+        if random.random()<0.2:
+            isNull = True
+        else:
+            isNull = False
         if isNull:
             query, time_e = timeSingleQuery(query, 'today')
             time_e = 'Null'
         else:
             query, time_e = timeSingleQuery(query, time_entity)
     else:
-        sql_template = "Select daily_rate from db6file3 where date = 'given date' and Entity = \"Country Name\" "
-        query = sql_template.replace("Country Name", location)
+        sql_template = "Select Rate Entity Column from db6file3 where date = 'Time Entity' and Entity = \"Country Entity\" "
+        query = sql_template.replace("Country Entity", location)
+        query = query.replace("Rate Entity Column", "daily_rate")
         query, time_e = timeSingleQuery(query, time_entity)
-    real_question = question_template.replace("(Location Entity)", location)
+    real_question = question_template.replace("(Country Entity)", location)
     if isNull:
         real_question = real_question.replace(" (Time Entity)", "")
     else:
@@ -130,6 +138,8 @@ while count <300 :
      #   continue
     #else:
     print("Count: " + str(count))
+    print(question_template)
+    print(sql_template)
     print(real_question)
     print(query)
     print(result)
@@ -137,4 +147,7 @@ while count <300 :
     'entities' : entities, 'question' : real_question, 
     'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 6'})
     count = count + 1
-print(output)
+
+with open('db6q2data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print("done")

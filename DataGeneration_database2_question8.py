@@ -26,11 +26,11 @@ with open('state_dict.json') as json_file:
  
 conn = sqlite3.connect('testQ.db')
 c = conn.cursor()   
-question_template = "How many (Race Entity) (Case Entity) occurred in (Location Entity) (Time Entity)?"
+question_template = "How many (Race Entity) (Case Entity) occurred in (State Entity) (Time Entity)?"
 question_template_id = 'db2q8'
 output = {}
 question_key = {}
-entities = ['Race Entity', 'Case Entity', 'Location Entity', 'Time Entity']
+entities = ['Race Entity', 'Case Entity', 'State Entity', 'Time Entity']
 case_entity_list = ['confirmed cases', 'cases', 'deaths', 'confirmed cases increased', 'cases increased', 'deaths increased']
 single_time_entity_total = ['as of yesterday', 'as of day before yesterday', 'as of today', 'as of (month), (date)', 'as of last (day)', 'up till yesterday', 'up till today', 'up till day before yesterday', 'up till last (day)', 'up till (month), (date)']
 range_time_entity_total = ['today', 'yesterday', 'day before yesterday', 'last (day)', 'on (month), (date)', 'in the last (x) weeks', 'in the last (x) days)', 'since last (day)', 'in the month of (month)', 'in (month)', 'since last week', 'since the last (x) weeks', 'since the last (x) months', 'since last month', 'since the last (x) days']
@@ -80,7 +80,7 @@ def raceQuery(query, race_entity):
         specific_race = random.choice(data2['Race'])
         race_input = genRaceInput(specific_race)
     output = output.replace("(race)", specific_race)
-    query = query.replace("(Race)",race_input)
+    query = query.replace("Race Entity Column",race_input)
     return query, output
 def timeTotalQuerySingle(query, time_entity):
     output = time_entity
@@ -130,7 +130,7 @@ def timeTotalQuerySingle(query, time_entity):
         final = date1
     else:
         final = date1 - datetime.timedelta(days=date1.weekday()-2)
-    query = query.replace('given date', str(final).replace("-", ""))
+    query = query.replace('Time Entity', str(final).replace("-", ""))
     return query, output
 def timeTotalQueryRange(query, time_entity):
     output = time_entity
@@ -231,8 +231,8 @@ def timeTotalQueryRange(query, time_entity):
         final2 = start_date
     else:
         final2 = start_date - datetime.timedelta(days=start_date.weekday()-2)
-    query = query.replace("end date", str(final).replace("-", ""))
-    query = query.replace("start date", str(final2).replace("-", ""))
+    query = query.replace("Time Entity", str(final).replace("-", ""),1)
+    query = query.replace("Time Entity", str(final2).replace("-", ""),1)
     return query, output
 while count <300:
     output[count] = []
@@ -244,7 +244,7 @@ while count <300:
     location = random.choice(location_entity_list)
     case_entity = random.choice(case_entity_list)
     if case_entity.find("increased") <0:
-        sql_template = "Select (Case)_(Race) from db2race where date = 'given date' and state = \"State Name\" "
+        sql_template = "Select Case Entity Column_Race Entity Column from db2race where date = 'Time Entity' and state = \"State Entity\" "
         time_entity = random.choice(single_time_entity_total)
         if location.find("(State)") >=0:
             state_name = random.choice(data2['State'])
@@ -253,11 +253,11 @@ while count <300:
             key_list = list(state_dict.keys())
             val_list = list(state_dict.values())
             state_abbreviation = key_list[val_list.index(state_name)]
-            query = sql_template.replace("State Name", state_abbreviation)
+            query = sql_template.replace("State Entity", state_abbreviation)
             loc = location.replace("(State)", state_name)
         else:
             state_abbreviation = random.choice(data2['State Abbreviation'])
-            query = sql_template.replace("State Name", state_abbreviation)
+            query = sql_template.replace("State Entity", state_abbreviation)
             loc = location.replace("(State Abbreviation)", state_abbreviation)
         query, race_e = raceQuery(query, race_entity)
         if random.random()<0.2:
@@ -270,7 +270,7 @@ while count <300:
         else:
             query, time_e = timeTotalQuerySingle(query, time_entity)
     else: 
-        sql_template = "Select(Select (Case)_(Race) from db2race where date = 'end date' and state = \"State Name\") - (Select (Case)_(Race) from db2race where date = 'start date' and state = \"State Name\") "
+        sql_template = "Select(Select Case Entity Column_Race Entity Column from db2race where date = 'Time Entity' and state = \"State Entity\") - (Select Case Entity Column_Race Entity Column from db2race where date = 'Time Entity' and state = \"State Entity\") "
         time_entity = random.choice(range_time_entity_total)
         if location.find("(State)") >=0:
             state_name = random.choice(data2['State'])
@@ -279,21 +279,21 @@ while count <300:
             key_list = list(state_dict.keys())
             val_list = list(state_dict.values())
             state_abbreviation = key_list[val_list.index(state_name)]
-            query = sql_template.replace("State Name", state_abbreviation)
+            query = sql_template.replace("State Entity", state_abbreviation)
             loc = location.replace("(State)", state_name)
         else:
             state_abbreviation = random.choice(data2['State Abbreviation'])
-            query = sql_template.replace("State Name", state_abbreviation)
+            query = sql_template.replace("State Entity", state_abbreviation)
             loc = location.replace("(State Abbreviation)", state_abbreviation)
         query, race_e = raceQuery(query, race_entity)
         query, time_e = timeTotalQueryRange(query,time_entity)
     if case_entity.find("cases")>=0:
-        query = query.replace("(Case)", "Cases")
+        query = query.replace("Case Entity Column", "Cases")
     else:
-        query = query.replace("(Case)", "Deaths")
+        query = query.replace("Case Entity Column", "Deaths")
     real_question = question_template.replace("(Case Entity)", case_entity)
     real_question = real_question.replace("(Race Entity)", race_e)
-    real_question = real_question.replace("(Location Entity)", loc)
+    real_question = real_question.replace("(State Entity)", loc)
     populated_entities.append(race_e)
     populated_entities.append(case_entity)
     populated_entities.append(loc)
@@ -314,10 +314,15 @@ while count <300:
                      'entities' : entities, 'question' : real_question, 
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 2'})
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
     
         count = count +1
+
+with open('db2q8data.json', 'w') as outfile: 
+    json.dump(output,outfile)
     
-    
+print("done")

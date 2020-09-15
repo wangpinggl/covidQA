@@ -26,7 +26,7 @@ print(data2)"""
 conn = sqlite3.connect('testQ.db')
 c = conn.cursor()
 question_key = {}
-question_template = 'What is the racial breakdown of Covid-19 deaths in (Location Entity)?'
+question_template = 'What is the racial breakdown of Covid-19 deaths in (County Entity) (State Entity)?'
 state_dict = {'AK': 'Alaska',
         'AL': 'Alabama',
         'AR': 'Arkansas',
@@ -86,7 +86,7 @@ state_dict = {'AK': 'Alaska',
         'WY': 'Wyoming'}
 output = {}
 question_template_id = 'db5q4'
-entities = ['Location Entity']
+entities = ['County Entity', 'State Entity']
 count = 1
 key_county = {}
 while count < 300:
@@ -97,7 +97,7 @@ while count < 300:
     entity = re.findall('\(([^)]+)', location)
     query = ""
     populated_entities = []
-    sql_template  = """Select Deaths, Non_Hispanic_White, Non_Hispanic_Black, Non_Hispanic_AIAN, Non_Hispanic_Asian, Other, Hispanic from db5 where Indicator = \"Distribution of COVID-19 deaths (%)\" and State = \"State_Abbreviation\" and County_Name = \"given county\""""
+    sql_template  = """Select Deaths, Non_Hispanic_White, Non_Hispanic_Black, Non_Hispanic_AIAN, Non_Hispanic_Asian, Other, Hispanic from db5 where Indicator = \"Distribution of COVID-19 deaths (%)\" and State = \"State Entity\" and County_Name = \"County Entity\""""
     if entity[1] == 'State': 
         county_list = random.choice(data2['County']).split(', ')
         county_name = county_list[0]
@@ -107,10 +107,10 @@ while count < 300:
         key_list = list(state_dict.keys())
         val_list = list(state_dict.values())
         state_abbreviation = key_list[val_list.index(state_name)]
-        query = sql_template.replace("State_Abbreviation", state_abbreviation)
-        query = query.replace("given county", county_name + " County")
+        query = sql_template.replace("State Entity", state_abbreviation)
+        query = query.replace("County Entity", county_name)
         populated_entities.append(county_name + ", " + state_name)
-        real_question = question_template.replace("(Location Entity)", loc)
+        real_question = question_template.replace("(County Entity) (State Entity)", loc)
         
         
         
@@ -121,17 +121,17 @@ while count < 300:
         key_list = list(state_dict.keys())
         val_list = list(state_dict.values())
         state_abbreviation = key_list[val_list.index(state_name)]
-        loc = location.replace("(County)", county_name + " County   ")
+        loc = location.replace("(County)", county_name)
         loc = loc.replace("(State Abbreviation)", state_abbreviation)
-        query = sql_template.replace("State_Abbreviation", state_abbreviation)
-        query = query.replace("given county", county_name + " County")
+        query = sql_template.replace("State Entity", state_abbreviation)
+        query = query.replace("County Entity", county_name + " County")
         populated_entities.append(county_name + ", " + state_name)
-        real_question = question_template.replace("(Location Entity)", loc)
+        real_question = question_template.replace("(County Entity) (State Entity)", loc)
     c.execute(query)
     result = c.fetchall()
-    if len(result) == 0 or result[0][0] == None:
-        continue 
-    elif real_question in question_key.keys():
+    #if len(result) == 0 or result[0][0] == None:
+       # continue 
+    if real_question in question_key.keys():
         continue
     else:
         output[count].append({'question_template_id' : question_template_id, 'question_template' : question_template, 
@@ -139,7 +139,13 @@ while count < 300:
          'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 5'})
         question_key[real_question] = True
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
         count = count + 1
+
+with open('db5q4data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print('done')

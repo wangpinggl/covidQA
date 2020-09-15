@@ -79,7 +79,7 @@ def timeSingleQuery(query, time_entity):
         in_date = datetime.date(2020, month_dict[month], int(date_num))
         output = output.replace("(month)", month)
         output = output.replace("(date)", date)
-    query = query.replace('given date', in_date.strftime("%b %d, %Y"))
+    query = query.replace('Time Entity', in_date.strftime("%b %d, %Y"))
     return query, output
         
 while count <300:
@@ -108,35 +108,36 @@ while count <300:
     else:
         ascending = True
     if rate_entity == 'percent positive rate':
-        sql_template = "Select Entity from db6file2 where date = 'given date' order by pos_rate asc/desc limit X,1"
+        sql_template = "Select Entity from db6file2 where date = 'Time Entity' order by Rate Entity Column Value Entity"
         query = sql_template
+        query = query.replace("Rate Entity Column", "pos_rate")
         if isNull:
             query, time_e = timeSingleQuery(query,'today')
             time_e = 'Null'
         else:
             query, time_e =  timeSingleQuery(query,time_entity)
     elif rate_entity == 'percent negative rate':
-        sql_template = "Select Entity from db6file2 where date = 'given date' order by 100-pos_rate asc/desc limit X,1"
+        sql_template = "Select Entity from db6file2 where date = 'Time Entity' order by Rate Entity Column Value Entity"
         query = sql_template
+        query = query.replace("Rate Entity Column", "100-pos_rate")
         if isNull:
             query, time_e = timeSingleQuery(query,'today')
             time_e = 'Null'
         else:
             query, time_e =  timeSingleQuery(query,time_entity)
     else:
-        sql_template = "Select Entity from db6file3 where date = 'given date' order by daily_rate asc/desc limit X,1"
+        sql_template = "Select Entity from db6file3 where date = 'Time Entity' order by Rate Entity Column Value Entity"
         query = sql_template
+        query = query.replace("Rate Entity Column", "daily_rate")
         if isNull:
             query, time_e = timeSingleQuery(query,'today')
             time_e = 'Null'
         else:
             query, time_e =  timeSingleQuery(query,time_entity)
     if ascending == False:
-        query = query.replace('asc/desc','desc')
-        query = query.replace('X', str(order-1))
+        query = query.replace('Value Entity','desc limit ' + str(order-1) + ', 1')
     else:
-        query = query.replace('asc/desc','asc')
-        query = query.replace('X', str(order-1))
+        query = query.replace('Value Entity','asc limit ' + str(order-1) + ', 1')
         
     real_question = question_template.replace("(Value Entity)", val)
     real_question = real_question.replace("(Rate Entity)", rate_entity)
@@ -156,6 +157,8 @@ while count <300:
    #else:
       #  question_key[real_question] = True
     print(count)
+    print(question_template)
+    print(sql_template)
     print(real_question)
     print(query)
     print(result)
@@ -163,5 +166,6 @@ while count <300:
     'entities' : entities, 'question' : real_question, 
     'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 6'})
     count = count +1
-    
-        
+with open('db6q4data.json', 'w') as outfile: 
+    json.dump(output,outfile)   
+print("done")

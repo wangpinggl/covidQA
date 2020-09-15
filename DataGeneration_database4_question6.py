@@ -43,17 +43,17 @@ day = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sund
 
 def mobilityQuerySingle(mobility, query):
     if mobility == 'retail and recreation':
-        query = query.replace("(Mobility)", "retail_and_recreation_percent_change_from_baseline")
+        query = query.replace("Mobility Entity Column", "retail_and_recreation_percent_change_from_baseline")
     elif mobility == 'grocery and pharmacy':
-        query = query.replace("(Mobility)", "grocery_and_pharmacy_percent_change_from_baseline")
+        query = query.replace("Mobility Entity Column", "grocery_and_pharmacy_percent_change_from_baseline")
     elif mobility == 'parks':
-        query = query.replace("(Mobility)", "parks_percent_change_from_baseline")
+        query = query.replace("Mobility Entity Column", "parks_percent_change_from_baseline")
     elif mobility == 'transit stations':
-        query = query.replace("(Mobility)", "transit_stations_percent_change_from_baseline")
+        query = query.replace("Mobility Entity Column", "transit_stations_percent_change_from_baseline")
     elif mobility == 'workplaces':
-        query = query.replace("(Mobility)", "workplaces_percent_change_from_baseline")
+        query = query.replace("Mobility Entity Column", "workplaces_percent_change_from_baseline")
     else:
-        query = query.replace("(Mobility)", "residential_percent_change_from_baseline")
+        query = query.replace("Mobility Entity Column", "residential_percent_change_from_baseline")
     return query 
         
 
@@ -62,13 +62,13 @@ def timeQuerySingle(time_entity, query):
     if time_entity == 'yesterday' or time_entity == 'as of yesterday': 
       
         
-        query = query.replace("given date", str(datetime.date.today()-datetime.timedelta(days=1)))
+        query = query.replace("Time Entity", str(datetime.date.today()-datetime.timedelta(days=1)))
     elif time_entity == 'today' or time_entity == 'as of today': 
       
-        query = query.replace("given date", str(datetime.date.today()))
+        query = query.replace("Time Entity", str(datetime.date.today()))
     elif time_entity == 'day before yesterday': 
       
-        query = query.replace("given date", str(datetime.date.today()-datetime.timedelta(days=2)))
+        query = query.replace("Time Entity", str(datetime.date.today()-datetime.timedelta(days=2)))
     elif time_entity.find("last (day)") >=0: 
         chosen_date = random.choice(day)
       
@@ -76,51 +76,51 @@ def timeQuerySingle(time_entity, query):
         if chosen_date == 'Monday':
             today = datetime.date.today()
             if today.weekday() % 7 == 0:
-                query = query.replace("given date", str(today-datetime.timedelta(days=7)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=7)))
             else:
-                query = query.replace("given date", str(today-datetime.timedelta(days=today.weekday()%7)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=today.weekday()%7)))
         elif chosen_date == 'Tuesday':
             today = datetime.date.today()
             offset = (today.weekday()-1)%7
             if offset == 0:
-                query = query.replace("given date", str(today-datetime.timedelta(days=7)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=7)))
             else:
-                query = query.replace("given date", str(today-datetime.timedelta(days=offset)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=offset)))
         elif chosen_date == 'Wednesday': 
             today = datetime.date.today()
             offset = (today.weekday()-2)%7
             if offset == 0:
-                query = query.replace("given date", str(today-datetime.timedelta(days=7)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=7)))
             else:
-                query = query.replace("given date", str(today-datetime.timedelta(days=offset)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=offset)))
         elif chosen_date == 'Thursday': 
             today = datetime.date.today()
             offset = (today.weekday()-3)%7
             if offset == 0:
-                query = query.replace("given date", str(today-datetime.timedelta(days=7)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=7)))
             else:
-                query = query.replace("given date", str(today-datetime.timedelta(days=offset)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=offset)))
         elif chosen_date == 'Friday': 
             today = datetime.date.today()
             offset = (today.weekday()-4)%7
             if offset == 0:
-                query = query.replace("given date", str(today-datetime.timedelta(days=7)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=7)))
             else:
-                query = query.replace("given date", str(today-datetime.timedelta(days=offset)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=offset)))
         elif chosen_date == 'Saturday': 
             today = datetime.date.today()
             offset = (today.weekday()-5)%7
             if offset == 0:
-                query = query.replace("given date", str(today-datetime.timedelta(days=7)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=7)))
             else:
-                query = query.replace("given date", str(today-datetime.timedelta(days=offset)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=offset)))
         elif chosen_date == 'Sunday': 
             today = datetime.date.today()
             offset = (today.weekday()-6)%7
             if offset == 0:
-                query = query.replace("given date", str(today-datetime.timedelta(days=7)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=7)))
             else:
-                query = query.replace("given date", str(today-datetime.timedelta(days=offset)))
+                query = query.replace("Time Entity", str(today-datetime.timedelta(days=offset)))
         output = output.replace("(day)", chosen_date)
     else: 
         month = random.choice(data2['Month'])
@@ -135,7 +135,7 @@ def timeQuerySingle(time_entity, query):
             date_num = '0' + date[0]
         else:
             date_num = date[0] + date[1]
-        query = query.replace("given date", '2020-'+month_num+'-'+date_num)
+        query = query.replace("Time Entity", '2020-'+month_num+'-'+date_num)
         output = output.replace("(month)", month)
         output = output.replace("(date)", date)
     return query, output
@@ -155,14 +155,16 @@ while count < 200:
     if location == 'in the state of (State)': 
         location = 'the state of (State)'
     entity = re.findall('\(([^)]+)', location)
-    sql_template = "Select (Mobility) FROM db4mobility WHERE date = \"given date\" AND country_region = \"United States\" AND sub_region_1 = \"State name\" and iso_3166_2_code LIKE \"US-%\""
+    sql_template = "Select Mobility Entity Column FROM db4mobility WHERE date = \"Time Entity\" AND country_region = \"United States\" AND sub_region_1 = \"State Entity\" and iso_3166_2_code LIKE \"US-%\""
     query = ""
     if len(entity) ==1:
+        question_template = 'What is the percentage change in (Mobility Entity) in (State Entity) (Time Entity)?'
+        entities = ['Mobility Entity', 'State Entity', 'Time Entity']
         if entity[0] == 'State':
             state_name = random.choice(data2['State'])
             while state_name == 'Guam' or state_name == 'Virgin Islands' or state_name == 'Diamond Princess' or state_name == 'Northern Mariana Islands':
                 state_name = random.choice(data2['State'])
-            query = sql_template.replace("State name", state_name)
+            query = sql_template.replace("State Entity", state_name)
             query = mobilityQuerySingle(mobility,query)
             time_entity = random.choice(single_time_entity)
             if isNull:
@@ -171,19 +173,21 @@ while count < 200:
             else:
                 query, time_e = timeQuerySingle(time_entity, query)
             loc = location.replace("(State)", state_name)
-            real_question = question_template.replace("(Location Entity)",loc)
+            real_question = question_template.replace("(State Entity)",loc)
             real_question = real_question.replace("(Mobility Entity)", mobility)
             if isNull:
                 real_question = real_question.replace(" (Time Entity)", "")
             else:
                 real_question = real_question.replace("(Time Entity)", time_e)
-            
+            populated_entities.append(mobility)
+            populated_entities.append(state_name)
+            populated_entities.append(time_e)
         else: 
             state_abbreviation = random.choice(data2['State Abbreviation'])
             while state_abbreviation  == 'PR' or state_abbreviation == 'GU' or state_abbreviation == 'VI':
                 state_abbreviation = random.choice(data2['State Abbreviation'])
             state_name = state_dict[state_abbreviation]
-            query = sql_template.replace("State name", state_name)
+            query = sql_template.replace("State Entity", state_name)
             query = mobilityQuerySingle(mobility, query)
             time_entity = random.choice(single_time_entity)
             if isNull:
@@ -192,21 +196,29 @@ while count < 200:
             else:
                 query, time_e = timeQuerySingle(time_entity, query)
             loc = location.replace("(State Abbreviation)", state_abbreviation)
-            real_question = question_template.replace("(Location Entity)",loc)
+            real_question = question_template.replace("(State Entity)",loc)
             real_question = real_question.replace("(Mobility Entity)", mobility)
             if isNull:
                 real_question = real_question.replace(" (Time Entity)", "")
             else:
                 real_question = real_question.replace("(Time Entity)", time_e)
+            populated_entities.append(mobility)
+            populated_entities.append(state_abbreviation)
+            populated_entities.append(time_e)
+          
             
     else: 
+        question_template = 'What is the percentage change in (Mobility Entity) in (County Entity) (State Entity) (Time Entity)?'
+        entities = ['Mobility Entity', 'County Entity', 'State Entity', 'Time Entity']
         if entity[1] == 'State':
             county_list = random.choice(data2['County']).split(', ')
             county_name = county_list[0]
             state_name = county_list[1]
             loc = location.replace("(County)", county_name)
             loc = loc.replace("(State)", state_name)
-            query = sql_template.replace("State name", state_name + "\" AND sub_region_2 = \"" + county_name+ " County")
+            query = sql_template.replace("State Entity", state_name + "\" AND sub_region_2 = \"" + county_name+ " County")
+            sql_template = query.replace(state_name, 'State Entity')
+            sql_template = sql_template.replace(county_name+ " County", 'County Entity')
             query = mobilityQuerySingle(mobility,query)
             
             time_entity = random.choice(single_time_entity)
@@ -216,14 +228,18 @@ while count < 200:
             else:
                 query, time_e = timeQuerySingle(time_entity, query)
             query = query.replace("and iso_3166_2_code LIKE \"US-%\"", "")
-            real_question = question_template.replace("(Location Entity)",loc)
+            sql_template = sql_template.replace("and iso_3166_2_code LIKE \"US-%\"", "")
+            real_question = question_template.replace("(County Entity) (State Entity)",loc)
             real_question = real_question.replace("(Mobility Entity)", mobility)
             if isNull:
                 real_question = real_question.replace(" (Time Entity)", "")
             else:
                 real_question = real_question.replace("(Time Entity)", time_e)
+            populated_entities.append(mobility)
+            populated_entities.append(county_name)
+            populated_entities.append(state_name)
+            populated_entities.append(time_e)
             
-          
         else:
             county_list = random.choice(data2['County']).split(', ')
             county_name = county_list[0]
@@ -233,7 +249,9 @@ while count < 200:
             state_abbreviation = key_list[val_list.index(state_name)]
             loc = location.replace("(County)", county_name)
             loc = loc.replace("(State Abbreviation)", state_abbreviation)
-            query = sql_template.replace("State name", state_name + "\" AND sub_region_2 = \"" + county_name+ " County")
+            query = sql_template.replace("State Entity", state_name + "\" AND sub_region_2 = \"" + county_name+ " County")
+            sql_template = query.replace(state_name, 'State Entity')
+            sql_template = sql_template.replace(county_name+ " County", 'County Entity')
             query = mobilityQuerySingle(mobility,query)
             time_entity = random.choice(single_time_entity)
             if isNull:
@@ -242,15 +260,18 @@ while count < 200:
             else:
                 query, time_e = timeQuerySingle(time_entity, query)
             query = query.replace("and iso_3166_2_code LIKE \"US-%\"", "")
-            real_question = question_template.replace("(Location Entity)",loc)
+            sql_template = sql_template.replace("and iso_3166_2_code LIKE \"US-%\"", "")
+            real_question = question_template.replace("(County Entity) (State Entity)",loc)
             real_question = real_question.replace("(Mobility Entity)", mobility)
             if isNull:
                 real_question = real_question.replace(" (Time Entity)", "")
             else:
                 real_question = real_question.replace("(Time Entity)", time_e)
-    populated_entities.append(mobility)
-    populated_entities.append(loc)
-    populated_entities.append(time_e)
+            
+            populated_entities.append(mobility)
+            populated_entities.append(county_name)
+            populated_entities.append(state_abbreviation)
+            populated_entities.append(time_e)
     c.execute(query)
     result = c.fetchall()
     #if len(result) == 0 or result[0][0] == None:
@@ -263,8 +284,12 @@ while count < 200:
                  'entities' : entities, 'question' : real_question, 
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 4'})
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
         count = count + 1
-        
+with open('db4q6singledata.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print('date')

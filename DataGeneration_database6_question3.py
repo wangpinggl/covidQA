@@ -45,21 +45,21 @@ day = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sund
 def timeDailyQuerySingle(query, time_entity):
     output = time_entity
     if time_entity == 'today': 
-        query = query.replace('given date', datetime.date.today().strftime("%b %d, %Y"))
+        query = query.replace('Time Entity', datetime.date.today().strftime("%b %d, %Y"))
     elif time_entity == 'yesterday':
         date = datetime.date.today() - datetime.timedelta(days=1)
-        query = query.replace('given date', date.strftime("%b %d, %Y"))
+        query = query.replace('Time Entity', date.strftime("%b %d, %Y"))
     elif time_entity == 'day before yesterday': 
         date = datetime.date.today() - datetime.timedelta(days=2)
-        query = query.replace('given date', date.strftime("%b %d, %Y"))
+        query = query.replace('Time Entity', date.strftime("%b %d, %Y"))
     elif time_entity == 'last (day)':
         chosen_date = random.choice(day)
         today = datetime.date.today()
         offset = (today.weekday() - day_map[chosen_date]) %7
         if offset == 0: 
-            query = query.replace("given date", (today-datetime.timedelta(days=7)).strftime("%b %d, %Y"))
+            query = query.replace("Time Entity", (today-datetime.timedelta(days=7)).strftime("%b %d, %Y"))
         else: 
-            query = query.replace("given date", (today-datetime.timedelta(days=offset)).strftime("%b %d, %Y"))
+            query = query.replace("Time Entity", (today-datetime.timedelta(days=offset)).strftime("%b %d, %Y"))
         output = output.replace("(day)", chosen_date)
     else:
         month = random.choice(data2['Month'])
@@ -74,7 +74,7 @@ def timeDailyQuerySingle(query, time_entity):
         else:
             date_num = date[0:2]
         mon = month[0:3]
-        query = query.replace("given date", mon + " " + date_num + ", 2020")
+        query = query.replace("Time Entity", mon + " " + date_num + ", 2020")
         output = output.replace("(month)", month)
         output = output.replace("(date)", date)
     return query, output
@@ -82,21 +82,21 @@ def timeDailyQuerySingle(query, time_entity):
 def timeTotalQuerySingle(query, time_entity):
     output = time_entity
     if time_entity.find('today')>=0: 
-        query = query.replace('given date', datetime.date.today().strftime("%b %d, %Y"))
+        query = query.replace('Time Entity', datetime.date.today().strftime("%b %d, %Y"))
     elif time_entity.find('yesterday')>=0:
         date = datetime.date.today() - datetime.timedelta(days=1)
-        query = query.replace('given date', date.strftime("%b %d, %Y"))
+        query = query.replace('Time Entity', date.strftime("%b %d, %Y"))
     elif time_entity.find('day before yesterday') >=0: 
         date = datetime.date.today() - datetime.timedelta(days=2)
-        query = query.replace('given date', date.strftime("%b %d, %Y"))
+        query = query.replace('Time Entity', date.strftime("%b %d, %Y"))
     elif time_entity.find('last (day)') >=0:
         chosen_date = random.choice(day)
         today = datetime.date.today()
         offset = (today.weekday() - day_map[chosen_date]) %7
         if offset == 0: 
-            query = query.replace("given date", (today-datetime.timedelta(days=7)).strftime("%b %d, %Y"))
+            query = query.replace("Time Entity", (today-datetime.timedelta(days=7)).strftime("%b %d, %Y"))
         else: 
-            query = query.replace("given date", (today-datetime.timedelta(days=offset)).strftime("%b %d, %Y"))
+            query = query.replace("Time Entity", (today-datetime.timedelta(days=offset)).strftime("%b %d, %Y"))
         output = output.replace("(day)", chosen_date)
     else:
         month = random.choice(data2['Month'])
@@ -108,7 +108,7 @@ def timeTotalQuerySingle(query, time_entity):
         else:
             date_num = date[0:2]
         mon = month[0:3]
-        query = query.replace("given date", mon + " " + date_num + ", 2020")
+        query = query.replace("Time Entity", mon + " " + date_num + ", 2020")
         output = output.replace("(month)", month)
         output = output.replace("(date)", date)
     return query, output
@@ -201,8 +201,8 @@ def timeTotalQueryRange(query, time_entity):
             end_date = datetime.date.today()
             start_date = end_date - datetime.timedelta(days=7*num_weeks)
             output = output.replace("(x)", str(num_weeks))
-    query = query.replace("end date", end_date.strftime("%b %d, %Y"))
-    query = query.replace("start date", start_date.strftime("%b %d, %Y"))
+    query = query.replace("Time Entity", end_date.strftime("%b %d, %Y"),1)
+    query = query.replace("Time Entity", start_date.strftime("%b %d, %Y"),1)
     return query, output
 
 while count < 300:
@@ -228,25 +228,21 @@ while count < 300:
     
     if testing_e == 'daily tests':
         time_entity = random.choice(single_time_entity_daily)
-        sql_template = "Select Entity from db6file4 where date = 'given date' order by New/Total tests asc/desc limit X,1"
-        query = sql_template.replace("New/Total tests", "New_Test")
+        sql_template = "Select Entity from db6file4 where date = 'Time Entity' order by Testing Entity Column Value Entity"
+        query = sql_template.replace("Testing Entity Column", "New_Test")
         if ascending == False:
-            query = query.replace('asc/desc','desc')
-            query = query.replace('X', str(order-1))
+            query = query.replace('Value Entity','desc limit ' + str(order-1) + ', 1')
         else:
-            query = query.replace('asc/desc','asc')
-            query = query.replace('X', str(order-1))
+            query = query.replace('Value Entity','asc limit ' + str(order-1) + ', 1')
         query, time_e = timeDailyQuerySingle(query, time_entity)
     elif testing_e == 'total tests':
         time_entity = random.choice(single_time_entity_total)
-        sql_template= "Select Entity from db6 where date = 'given date' order by New/Total tests asc/desc limit X,1"
-        query = sql_template.replace("New/Total tests", "Total")
+        sql_template= "Select Entity from db6 where date = 'Time Entity' order by Testing Entity Column Value Entity"
+        query = sql_template.replace("Testing Entity Column", "Total")
         if ascending == False:
-            query = query.replace('asc/desc','desc')
-            query = query.replace('X', str(order-1))
+            query = query.replace('Value Entity','desc limit ' + str(order-1) + ', 1')
         else:
-            query = query.replace('asc/desc','asc')
-            query = query.replace('X', str(order-1))
+            query = query.replace('Value Entity','asc limit ' + str(order-1) + ', 1')
         if random.random()<0.2:
             isNull = True
         if isNull:
@@ -257,14 +253,13 @@ while count < 300:
     else:
         
         time_entity = random.choice(range_time_entity_total)
-        sql_template = "Select e1 from (Select Entity as E1, Total as tot1 from db6 where date = 'end date') as t1 Inner Join (Select Entity as e2, Total as tot2 from db6 where date = 'start date') as t2 on t1.e1=t2.e2 order by t1.tot1-t2.tot2 asc/desc limit X,1"
+        sql_template = "Select e1 from (Select Entity as E1, Testing Entity Column as tot1 from db6 where date = 'Time Entity') as t1 Inner Join (Select Entity as e2, Testing Entity Column as tot2 from db6 where date = 'Time Entity') as t2 on t1.e1=t2.e2 order by t1.tot1-t2.tot2 Value Entity"
         query = sql_template
+        query = query.replace("Testing Entity Column", "Total")
         if ascending == False:
-            query = query.replace('asc/desc','desc')
-            query = query.replace('X', str(order-1))
+            query = query.replace('Value Entity','desc limit ' + str(order-1) + ', 1')
         else:
-            query = query.replace('asc/desc','asc')
-            query = query.replace('X', str(order-1))
+            query = query.replace('Value Entity','asc limit ' + str(order-1) + ', 1')
         query, time_e = timeTotalQueryRange(query, time_entity)
     real_question = question_template.replace("(Value Entity)", val)
     if isNull:
@@ -283,8 +278,10 @@ while count < 300:
     #elif real_question in question_key.keys():
      #   continue
     #else:
-    #question_key[real_question] = True
+    question_key[real_question] = True
     print(count)
+    print(question_template)
+    print(sql_template)
     print(real_question)
     print(query)
     print(result)
@@ -292,3 +289,6 @@ while count < 300:
     'entities' : entities, 'question' : real_question, 
     'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 6'})
     count = count +1
+with open('db6q3data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print("done")

@@ -87,13 +87,13 @@ def raceQuery(query, race_entity):
             output = output.replace("(race)", 'American Indians or Alaska Natives')
         else:
             output = output.replace("(race)", specific_race + 's')
-    query = query.replace("(Race)",race_input)
+    query = query.replace("Race Entity Column",race_input)
     return query, output
 
 while count < 300: 
     output[count] = []
     populated_entities = []
-    sql_template = "Select state from db2race where date = 'given date' and (Case)_(Race) is not null order by (Case)_(Race) asc/desc limit (X),1"
+    sql_template = "Select state from db2race where date = 'given date' and Case Entity Column_Race Entity Column is not null order by Case Entity Column_Race Entity Column Value Entity"
     race_entity = random.choice(data['Race'])
     case_entity = random.choice(case_entity_list)
     while race_entity == 'mixed' or race_entity =='multiracial':
@@ -115,16 +115,14 @@ while count < 300:
     else:
         ascending = True
     if case_entity.find('cases')>=0: 
-        query = sql_template.replace("(Case)", "Cases")
+        query = sql_template.replace("Case Entity Column", "Cases")
     else:
-        query = sql_template.replace("(Case)", "Deaths")
+        query = sql_template.replace("Case Entity Column", "Deaths")
     query, race_e = raceQuery(query, race_entity)
     if ascending == False:
-        query = query.replace('asc/desc','desc')
-        query = query.replace('(X)', str(order-1))
+        query = query.replace('Value Entity','desc limit ' + str(order-1) + ', 1')
     else:
-        query = query.replace('asc/desc','asc')
-        query = query.replace('(X)', str(order-1))
+        query = query.replace('Value Entity','asc limit ' + str(order-1) + ', 1')
     today = datetime.date.today() - datetime.timedelta(days=2)
     if today.weekday() == 1 or today.weekday() == 0:
         date = today-datetime.timedelta(days=today.weekday()+1)
@@ -152,9 +150,14 @@ while count < 300:
                      'entities' : entities, 'question' : real_question, 
                  'populated_entities': populated_entities, 'query_template' : sql_template, 'query' :  query, 'database': 'database 2'})
         print(count)
+        print(question_template)
+        print(sql_template)
         print(real_question)
         print(query)
         print(result)
     
         count = count +1
 
+with open('db2q7data.json', 'w') as outfile: 
+    json.dump(output,outfile)
+print("done")
